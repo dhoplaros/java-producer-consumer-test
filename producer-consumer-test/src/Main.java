@@ -2,6 +2,9 @@ import helper.WordWithOrder;
 import queue.QueueFinalConsumer;
 import queue.QueueProducer;
 import queue.QueueWordConsumer;
+import singlethread.FinalConsumer;
+import singlethread.Producer;
+import singlethread.WordConsumer;
 
 import java.util.Map;
 import java.util.Queue;
@@ -33,14 +36,46 @@ public class Main {
                 "The latest version is Java 8 which is the only version currently supported for free by Oracle, " +
                 "although earlier versions are supported both by Oracle and other companies on a commercial basis.";
 
+
+//        processSingleThread(paragraph);
+        processMultiThread(paragraph);
+        System.out.println("Done!");
+    }
+
+    /**
+     * Used to verify the result (single vs multi thread approach)
+     *
+     * @param paragraph
+     */
+    private static void processSingleThread(final String paragraph) {
+        final FinalConsumer finalConsumer = new FinalConsumer();
+        final WordConsumer wordConsumer1 = new WordConsumer(1, finalConsumer);
+        final WordConsumer wordConsumer2 = new WordConsumer(2, finalConsumer);
+        final Producer producer = new Producer(wordConsumer1, wordConsumer2);
+
+        producer.process(paragraph);
+        finalConsumer.printCurrentResult();
+    }
+
+    private static void processMultiThread(final String paragraph) {
+        // used to allow the final consumer to know whether all consumers are done with their input
         final Map<Integer, Boolean> finishedConsumers = new ConcurrentHashMap<>();
+
+        // queue of the final consumer (input for final consumer, output for word consumers)
         final Queue<WordWithOrder> finalConsumerInput = new ConcurrentLinkedQueue<>();
+
+        // queue for consumer 1 (input of consumer 1, output of producer)
         final Queue<WordWithOrder> consumer1Input = new ConcurrentLinkedQueue<>();
+        // queue for consumer 2 (input of consumer 2, output of producer)
         final Queue<WordWithOrder> consumer2Input = new ConcurrentLinkedQueue<>();
+        // whether the input of the producer is completed
         final AtomicBoolean inputComplete = new AtomicBoolean(false);
 
+        // sync object for producer/consumer1
         final Object consumer1SyncObject = new Object();
+        // sync object for producer/consumer2
         final Object consumer2SyncObject = new Object();
+        // sync object for word consumer(s)/final consumer
         final Object finalConsumerSyncObject = new Object();
 
         final QueueFinalConsumer finalConsumer = new QueueFinalConsumer(finishedConsumers, finalConsumerInput, finalConsumerSyncObject);
@@ -52,7 +87,5 @@ public class Main {
         wordConsumer1.start();
         wordConsumer2.start();
         producer.start();
-
-        System.out.println("Done!");
     }
 }

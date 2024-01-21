@@ -31,8 +31,9 @@ public class QueueProducer extends Thread {
     public void run() {
         System.out.println("Producer - Thread: " + Thread.currentThread() + ". Commencing...");
         int order = 0;
+        // TODO handle special characters when splitting words
         for (final String word : inputParagraph.toLowerCase().split("\s")) {
-            if (word.length() >= 4) {
+            if (word.length() < 4) {
                 consumer1Input.add(new WordWithOrder().setOrder(order).setWord(word));
                 synchronized (consumer1) {
                     consumer1.notify();

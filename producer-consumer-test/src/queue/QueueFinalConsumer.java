@@ -43,7 +43,7 @@ public class QueueFinalConsumer extends Thread {
         printCurrentResult();
     }
 
-    public void printCurrentResult() {
+    private void printCurrentResult() {
         final String result = inputQueue.stream()
                 .sorted(Comparator.comparingInt(WordWithOrder::getOrder))
                 .map(WordWithOrder::getWord)
